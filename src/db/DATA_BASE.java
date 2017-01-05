@@ -2,9 +2,25 @@
 package db;
 
 
+
+import org.json.JSONArray;
+
 //just incase we have to use the other kind of database
 public interface DATA_BASE {
 
+	
+	
+
+	
+	/**
+     * Search restaurants.
+     * @param userId
+     * @param lat
+     * @param lon
+     * @return
+     */
+    public JSONArray searchRestaurants(String userId, double lat, double lon, String term);
+	
 	
 	  /**
      * Close the connection.
