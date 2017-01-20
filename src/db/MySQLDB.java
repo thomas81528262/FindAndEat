@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import org.json.JSONArray;
@@ -16,6 +17,60 @@ public class MySQLDB implements DATA_BASE {
 	private Connection sqlCon = null;
 
 
+	private Boolean getLastBookedMark(String userId, String businessId) {
+		String query = "SELECT is_booked FROM book_mark where user_id=? and business_id=? "
+				+ "ORDER BY book_mark.book_mark_time DESC "
+				+ "limit 1;";
+		try {
+			PreparedStatement statement = sqlCon.prepareStatement(query);
+			statement.setString(1,  userId);
+			statement.setString(2, businessId);
+			ResultSet rs = statement.executeQuery();
+			if (rs.next()) {
+				
+				return rs.getString("is_booked") != null;
+			}
+			
+			System.out.println("can not find the restaurant");
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+		
+	
+	}
+	
+	
+	
+	@Override
+	public void bookMarkRestaurants(String userId, List<String> businessIds) {
+		
+	
+		
+		
+		try {
+			
+			String query = "INSERT INTO book_mark (user_id, business_id, is_booked) VALUES (?, ?, 1)";
+			PreparedStatement statement = sqlCon.prepareStatement(query);
+			for (String businessId : businessIds) {
+				Boolean result = getLastBookedMark(userId, businessId);
+				if (result == null || result == false) {
+					statement.setString(1,  userId);
+					statement.setString(2, businessId);
+					System.out.println(statement);
+					statement.execute();
+				} 
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
+	
+	
 	@Override
 	public JSONArray searchRestaurants(String userId, double lat, double lon, String Sterm) {
 		try {
@@ -43,6 +98,14 @@ public class MySQLDB implements DATA_BASE {
 				String url = restaurant.getUrl();
 				JSONObject obj = restaurant.toJSONObject();
 				
+				System.out.println(businessId);
+				Boolean isBooked = getLastBookedMark(userId, businessId);
+				
+				if(isBooked == null || isBooked == false) {
+					obj.put("is_booked", false);
+				} else {
+					obj.put("is_booked", true);
+				}
 				
 				// if the primary key is alreay in the data base just update it
 				String insertCom = "INSERT INTO restaurants VALUES ";
@@ -163,8 +226,34 @@ public class MySQLDB implements DATA_BASE {
 
 	public static void main(String[] args) {
 
+		MySQLDB sqlTest = new MySQLDB();
 		
-
+		/*
+		CREATE TABLE book_mark
+			 (book_mark_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			 user_id VARCHAR(255) NOT NULL ,
+			 business_id VARCHAR(255) NOT NULL,
+			 book_mark_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			 PRIMARY KEY (book_mark_id),
+			 FOREIGN KEY (business_id) REFERENCES restaurants(business_id),
+			 FOREIGN KEY (user_id) REFERENCES users(user_id));
+		*/
+		
+		
+		List<String> testList = new ArrayList<>();
+		testList.add("asian-box-mountain-view");
+		testList.add("bowl-of-heaven-mountain-view-2");
+		testList.add("eureka-mountain-view-2");
+		testList.add("vaso-azzurro-ristorante-mountain-view");
+		testList.add("srasa-kitchen-mountain-view-3");
+		sqlTest.bookMarkRestaurants("thomas", testList);
+		
+		
+		
+	}
+	
+	
+	private void logInTest() {
 		DATA_BASE sqlTest = new MySQLDB();
 		/*
 		 * CREATE TABLE users (user_id VARCHAR(255) NOT NULL, password
@@ -173,6 +262,10 @@ public class MySQLDB implements DATA_BASE {
 		 */
 		System.out.print(sqlTest.verifyLogin("thomas", "1234"));
 		
+	}
+	
+	private void searchTest() {
+		DATA_BASE sqlTest = new MySQLDB();
 		/*
 		CREATE TABLE restaurants 
 			 (business_id VARCHAR(255) NOT NULL, 
