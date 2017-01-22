@@ -28,7 +28,8 @@ public class MySQLDB implements DATA_BASE {
 			ResultSet rs = statement.executeQuery();
 			if (rs.next()) {
 				
-				return rs.getString("is_booked") != null;
+				
+				return rs.getString("is_booked").equals("1");
 			}
 			
 			System.out.println("can not find the restaurant");
@@ -234,6 +235,7 @@ public class MySQLDB implements DATA_BASE {
 			 user_id VARCHAR(255) NOT NULL ,
 			 business_id VARCHAR(255) NOT NULL,
 			 book_mark_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			 is_booked BOOL NOT NULL,
 			 PRIMARY KEY (book_mark_id),
 			 FOREIGN KEY (business_id) REFERENCES restaurants(business_id),
 			 FOREIGN KEY (user_id) REFERENCES users(user_id));
