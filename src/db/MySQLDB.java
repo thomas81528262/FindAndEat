@@ -45,19 +45,22 @@ public class MySQLDB implements DATA_BASE {
 	
 	
 	
-	@Override
-	public void bookMarkRestaurants(String userId, List<String> businessIds) {
-		
 	
-		
+	
+	@Override
+	public void bookMarkRestaurants(String userId, List<String> businessIds, boolean value) {
 		
 		try {
 			
-			String query = "INSERT INTO book_mark (user_id, business_id, is_booked) VALUES (?, ?, 1)";
+			
+			String sValue = value == true ? "1" : "0";
+			
+			String query = "INSERT INTO book_mark (user_id, business_id, is_booked) VALUES (?, ?," + sValue +")";
 			PreparedStatement statement = sqlCon.prepareStatement(query);
 			for (String businessId : businessIds) {
 				Boolean result = getLastBookedMark(userId, businessId);
-				if (result == null || result == false) {
+				
+				if ((result == null && value == true) || (result != null && result != value)) {
 					statement.setString(1,  userId);
 					statement.setString(2, businessId);
 					System.out.println(statement);
@@ -227,28 +230,7 @@ public class MySQLDB implements DATA_BASE {
 
 	public static void main(String[] args) {
 
-		MySQLDB sqlTest = new MySQLDB();
 		
-		/*
-		CREATE TABLE book_mark
-			 (book_mark_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-			 user_id VARCHAR(255) NOT NULL ,
-			 business_id VARCHAR(255) NOT NULL,
-			 book_mark_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			 is_booked BOOL NOT NULL,
-			 PRIMARY KEY (book_mark_id),
-			 FOREIGN KEY (business_id) REFERENCES restaurants(business_id),
-			 FOREIGN KEY (user_id) REFERENCES users(user_id));
-		*/
-		
-		
-		List<String> testList = new ArrayList<>();
-		testList.add("asian-box-mountain-view");
-		testList.add("bowl-of-heaven-mountain-view-2");
-		testList.add("eureka-mountain-view-2");
-		testList.add("vaso-azzurro-ristorante-mountain-view");
-		testList.add("srasa-kitchen-mountain-view-3");
-		sqlTest.bookMarkRestaurants("thomas", testList);
 		
 		
 		
@@ -295,5 +277,32 @@ public class MySQLDB implements DATA_BASE {
 			}
 		}
 	}
+	
+	
+	private void bookMarkTest() {
+		
+MySQLDB sqlTest = new MySQLDB();
+		
+		/*
+		CREATE TABLE book_mark
+			 (book_mark_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			 user_id VARCHAR(255) NOT NULL ,
+			 business_id VARCHAR(255) NOT NULL,
+			 book_mark_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			 is_booked BOOL NOT NULL,
+			 PRIMARY KEY (book_mark_id),
+			 FOREIGN KEY (business_id) REFERENCES restaurants(business_id),
+			 FOREIGN KEY (user_id) REFERENCES users(user_id));
+		*/	
+		List<String> testList = new ArrayList<>();
+		testList.add("asian-box-mountain-view");
+		testList.add("bowl-of-heaven-mountain-view-2");
+		testList.add("eureka-mountain-view-2");
+		testList.add("vaso-azzurro-ristorante-mountain-view");
+		testList.add("srasa-kitchen-mountain-view-3");
+		sqlTest.bookMarkRestaurants("thomas", testList, true);
+		
+	}
+	
 
 }
