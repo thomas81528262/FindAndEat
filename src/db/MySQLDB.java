@@ -16,65 +16,85 @@ import yelp.YelpAPI;
 public class MySQLDB implements DATA_BASE {
 	private Connection sqlCon = null;
 
-
-	private Boolean getLastBookedMark(String userId, String businessId) {
-		String query = "SELECT is_booked FROM book_mark where user_id=? and business_id=? "
-				+ "ORDER BY book_mark.book_mark_time DESC "
-				+ "limit 1;";
+	/*
+	 * private Boolean getLastBookedMark(String userId, String businessId) {
+	 * String query =
+	 * "SELECT is_booked FROM book_mark where user_id=? and business_id=? " +
+	 * "ORDER BY book_mark.book_mark_time DESC " + "limit 1;"; try {
+	 * PreparedStatement statement = sqlCon.prepareStatement(query);
+	 * statement.setString(1, userId); statement.setString(2, businessId);
+	 * ResultSet rs = statement.executeQuery(); if (rs.next()) {
+	 * 
+	 * 
+	 * return rs.getString("is_booked").equals("1"); }
+	 * 
+	 * System.out.println("can not find the restaurant");
+	 * 
+	 * } catch (SQLException e) { // TODO Auto-generated catch block
+	 * e.printStackTrace(); } return null;
+	 * 
+	 * 
+	 * }
+	 * 
+	 */
+	private boolean bookMarkExist(String userId, String businessId) {
+		String query = "select user_id_business_id FROM book_mark WHERE user_id_business_id=?";
 		try {
 			PreparedStatement statement = sqlCon.prepareStatement(query);
-			statement.setString(1,  userId);
-			statement.setString(2, businessId);
+			statement.setString(1, userId + ':' + businessId);
 			ResultSet rs = statement.executeQuery();
+
 			if (rs.next()) {
-				
-				
-				return rs.getString("is_booked").equals("1");
+				return true;
+			} else {
+				return false;
 			}
-			
-			System.out.println("can not find the restaurant");
-			
+
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return null;
-		
-	
+
+		return false;
 	}
-	
-	
-	
-	
-	
+
 	@Override
-	public void bookMarkRestaurants(String userId, List<String> businessIds, boolean value) {
-		
+	public boolean bookMarkRestaurants(String userId, List<String> businessIds, boolean value) {
+
 		try {
-			
-			
-			String sValue = value == true ? "1" : "0";
-			
-			String query = "INSERT INTO book_mark (user_id, business_id, is_booked) VALUES (?, ?," + sValue +")";
+
+			String query = value == true
+					? "INSERT INTO book_mark (user_id, business_id, user_id_business_id) VALUES (?,?,?)"
+					: "DELETE FROM book_mark WHERE user_id_business_id = ?";
+
 			PreparedStatement statement = sqlCon.prepareStatement(query);
 			for (String businessId : businessIds) {
-				Boolean result = getLastBookedMark(userId, businessId);
-				
-				if ((result == null && value == true) || (result != null && result != value)) {
-					statement.setString(1,  userId);
+
+				if (value == true) {
+					statement.setString(1, userId);
 					statement.setString(2, businessId);
-					System.out.println(statement);
-					statement.execute();
-				} 
+					statement.setString(3, userId + ':' + businessId);
+				} else {
+
+					if (!bookMarkExist(userId, businessId)) {
+						return false;
+					}
+					statement.setString(1, userId + ':' + businessId);
+				}
+				statement.execute();
+
 			}
+
+			return true;
 		} catch (SQLException e) {
-			e.printStackTrace();
+			// we want to normal return the status
+			System.out.println(e.getMessage());
+			return false;
+
 		}
-		
+
 	}
-	
-	
-	
+
 	@Override
 	public JSONArray searchRestaurants(String userId, double lat, double lon, String Sterm) {
 		try {
@@ -84,7 +104,6 @@ public class MySQLDB implements DATA_BASE {
 			JSONArray array = (JSONArray) response.get("businesses");
 
 			List<JSONObject> list = new ArrayList<JSONObject>();
-			
 
 			for (int i = 0; i < array.length(); i++) {
 				JSONObject object = array.getJSONObject(i);
@@ -101,16 +120,16 @@ public class MySQLDB implements DATA_BASE {
 				String imageUrl = restaurant.getImageUrl();
 				String url = restaurant.getUrl();
 				JSONObject obj = restaurant.toJSONObject();
-				
+
 				System.out.println(businessId);
-				Boolean isBooked = getLastBookedMark(userId, businessId);
-				
-				if(isBooked == null || isBooked == false) {
+				Boolean isBooked = bookMarkExist(userId, businessId);
+
+				if (isBooked == null || isBooked == false) {
 					obj.put("is_booked", false);
 				} else {
 					obj.put("is_booked", true);
 				}
-				
+
 				// if the primary key is alreay in the data base just update it
 				String insertCom = "INSERT INTO restaurants VALUES ";
 				String updateCom = "ON DUPLICATE KEY UPDATE ";
@@ -145,10 +164,10 @@ public class MySQLDB implements DATA_BASE {
 				statement.setString(21, url);
 
 				statement.execute();
-				
-				//finally get the result > <
+
+				// finally get the result > <
 				list.add(obj);
-				
+
 			}
 
 			return new JSONArray(list);
@@ -180,7 +199,7 @@ public class MySQLDB implements DATA_BASE {
 		if (sqlCon != null) {
 			try {
 				sqlCon.close();
-			} catch (Exception e) { 
+			} catch (Exception e) {
 				// TODO
 				e.printStackTrace();
 			}
@@ -230,13 +249,8 @@ public class MySQLDB implements DATA_BASE {
 
 	public static void main(String[] args) {
 
-		
-		
-		
-		
 	}
-	
-	
+
 	private void logInTest() {
 		DATA_BASE sqlTest = new MySQLDB();
 		/*
@@ -245,29 +259,21 @@ public class MySQLDB implements DATA_BASE {
 		 * VARCHAR(255), PRIMARY KEY ( user_id ));
 		 */
 		System.out.print(sqlTest.verifyLogin("thomas", "1234"));
-		
+
 	}
-	
+
 	private void searchTest() {
 		DATA_BASE sqlTest = new MySQLDB();
 		/*
-		CREATE TABLE restaurants 
-			 (business_id VARCHAR(255) NOT NULL, 
-			 name VARCHAR(255),
-			 categories VARCHAR(255), 
-			 city VARCHAR(255), 
-			 state VARCHAR(255), 
-			 stars FLOAT, 
-			 full_address VARCHAR(255), 
-			 latitude FLOAT,
-			 longitude FLOAT,
-			 image_url VARCHAR(255),
-			 url VARCHAR(255),
-			 PRIMARY KEY ( business_id ))
-		*/
-		
-		JSONArray list = sqlTest.searchRestaurants("thomas",37.38, -122.08, "dinner");
-		
+		 * CREATE TABLE restaurants (business_id VARCHAR(255) NOT NULL, name
+		 * VARCHAR(255), categories VARCHAR(255), city VARCHAR(255), state
+		 * VARCHAR(255), stars FLOAT, full_address VARCHAR(255), latitude FLOAT,
+		 * longitude FLOAT, image_url VARCHAR(255), url VARCHAR(255), PRIMARY
+		 * KEY ( business_id ))
+		 */
+
+		JSONArray list = sqlTest.searchRestaurants("thomas", 37.38, -122.08, "dinner");
+
 		for (int i = 0; i < list.length(); i++) {
 			try {
 				System.out.println(list.get(i));
@@ -277,32 +283,47 @@ public class MySQLDB implements DATA_BASE {
 			}
 		}
 	}
-	
-	
+
 	private void bookMarkTest() {
-		
-MySQLDB sqlTest = new MySQLDB();
-		
+
+		MySQLDB sqlTest = new MySQLDB();
+
 		/*
-		CREATE TABLE book_mark
-			 (book_mark_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-			 user_id VARCHAR(255) NOT NULL ,
-			 business_id VARCHAR(255) NOT NULL,
-			 book_mark_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			 is_booked BOOL NOT NULL,
-			 PRIMARY KEY (book_mark_id),
-			 FOREIGN KEY (business_id) REFERENCES restaurants(business_id),
-			 FOREIGN KEY (user_id) REFERENCES users(user_id));
-		*/	
+		 * CREATE TABLE book_mark (book_mark_id bigint(20) unsigned NOT NULL
+		 * AUTO_INCREMENT, user_id VARCHAR(255) NOT NULL , business_id
+		 * VARCHAR(255) NOT NULL, book_mark_time timestamp NOT NULL DEFAULT
+		 * CURRENT_TIMESTAMP, is_booked BOOL NOT NULL, PRIMARY KEY
+		 * (book_mark_id), FOREIGN KEY (business_id) REFERENCES
+		 * restaurants(business_id), FOREIGN KEY (user_id) REFERENCES
+		 * users(user_id));
+		 */
 		List<String> testList = new ArrayList<>();
 		testList.add("asian-box-mountain-view");
 		testList.add("bowl-of-heaven-mountain-view-2");
 		testList.add("eureka-mountain-view-2");
 		testList.add("vaso-azzurro-ristorante-mountain-view");
 		testList.add("srasa-kitchen-mountain-view-3");
-		sqlTest.bookMarkRestaurants("thomas", testList, true);
-		
+		System.out.println(sqlTest.bookMarkRestaurants("thomas", testList, true));
+
 	}
-	
+
+	// simplify the table by combine two data to primary key
+	private static void bookMarkTestV2(boolean value) {
+		DATA_BASE sqlTest = new MySQLDB();
+		/*
+		 * CREATE TABLE book_mark (user_id_business_id VARCHAR(255) NOT NULL ,
+		 * user_id VARCHAR(255) NOT NULL , business_id VARCHAR(255) NOT NULL,
+		 * PRIMARY KEY (user_id_business_id ), FOREIGN KEY (business_id)
+		 * REFERENCES restaurants(business_id), FOREIGN KEY (user_id) REFERENCES
+		 * users(user_id));
+		 */
+		List<String> testList = new ArrayList<>();
+		testList.add("asian-box-mountain-view");
+		testList.add("bowl-of-heaven-mountain-view-2");
+		testList.add("eureka-mountain-view-2");
+		testList.add("vaso-azzurro-ristorante-mountain-view");
+		testList.add("srasa-kitchen-mountain-view-3");
+		System.out.println(sqlTest.bookMarkRestaurants("thomas", testList, value));
+	}
 
 }
