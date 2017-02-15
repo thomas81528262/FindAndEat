@@ -33,7 +33,7 @@ public class LoginServlet extends HttpServlet {
 		try {
 			JSONObject res = new JSONObject();
 			HttpSession session = request.getSession();
-			if (session.getAttribute("user") == null) {
+			if (session.getAttribute("user_id") == null) {
 
 				// http 403 Forbidden
 				response.setStatus(403);
@@ -72,7 +72,7 @@ public class LoginServlet extends HttpServlet {
 
 			if (db.verifyLogin(user_id, pwd)) {
 				HttpSession session = request.getSession();
-				session.setAttribute("user", user_id);
+				session.setAttribute("user_id", user_id);
 
 				// session will expire in 30 minutes
 				session.setMaxInactiveInterval(30 * 60);

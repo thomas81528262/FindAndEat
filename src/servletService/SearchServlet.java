@@ -28,7 +28,7 @@ public class SearchServlet extends HttpServlet {
 			throws ServletException, IOException {
 
 		HttpSession session = request.getSession();
-		if (session.getAttribute("user") == null) {
+		if (session.getAttribute("user_id") == null) {
 			// http 401 Unauthorized
 			response.setStatus(401);
 			return;
@@ -39,7 +39,7 @@ public class SearchServlet extends HttpServlet {
 		DATA_BASE db = new MySQLDB();
 		if (request.getParameterMap().containsKey("lat") && request.getParameterMap().containsKey("lon")) {
 
-			//if the client did not put the term in the url just use defalut term
+			//if the client did not put the term in the url just use defaultt term
 			String reqTerm = request.getParameter("term");
 			term = reqTerm == null? term : reqTerm;
 			String userId = (String) session.getAttribute("user_id");

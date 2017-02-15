@@ -3,14 +3,25 @@ package db;
 
 
 
+import java.util.List;
+import java.util.Set;
+
 import org.json.JSONArray;
 
-//just incase we have to use the other kind of database
+//just in case we have to use the other kind of database
 public interface DATA_BASE {
 
-	
+	 /**
+     * Insert the book mark value in the data base.
+     * @param userId
+     * @param businessIds
+     */
+    public boolean bookMarkRestaurants(String userId, List<String> businessIds, boolean value);
 	
 
+    
+   
+    
 	
 	/**
      * Search restaurants.
@@ -42,5 +53,14 @@ public interface DATA_BASE {
      * @return First and Last Name
      */
     public String getFirstLastName(String userId);
+    
+    
+    
+    /**
+     * Get the bookMarked restaurants for a user.
+     * @param userId
+     * @return
+     */
+    public List<String> getBookMarkRestaurants(String userId);
 
 }

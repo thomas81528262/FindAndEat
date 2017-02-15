@@ -6,7 +6,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -16,27 +19,29 @@ import yelp.YelpAPI;
 public class MySQLDB implements DATA_BASE {
 	private Connection sqlCon = null;
 
-	/*
-	 * private Boolean getLastBookedMark(String userId, String businessId) {
-	 * String query =
-	 * "SELECT is_booked FROM book_mark where user_id=? and business_id=? " +
-	 * "ORDER BY book_mark.book_mark_time DESC " + "limit 1;"; try {
-	 * PreparedStatement statement = sqlCon.prepareStatement(query);
-	 * statement.setString(1, userId); statement.setString(2, businessId);
-	 * ResultSet rs = statement.executeQuery(); if (rs.next()) {
-	 * 
-	 * 
-	 * return rs.getString("is_booked").equals("1"); }
-	 * 
-	 * System.out.println("can not find the restaurant");
-	 * 
-	 * } catch (SQLException e) { // TODO Auto-generated catch block
-	 * e.printStackTrace(); } return null;
-	 * 
-	 * 
-	 * }
-	 * 
-	 */
+	
+	@Override
+	public List<String> getBookMarkRestaurants(String userId) {
+		List<String> bookMarkList = new ArrayList<>();
+		try {
+			String sql = "SELECT business_id from book_mark WHERE user_id = ?";
+			PreparedStatement statement = sqlCon.prepareStatement(sql);
+			statement.setString(1, userId);
+			ResultSet rs = statement.executeQuery();
+			
+			while (rs.next()) {
+				String visitedRestaurant = rs.getString("business_id");
+				bookMarkList.add(visitedRestaurant);
+				
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return bookMarkList;
+	}
+	
+	
+
 	private boolean bookMarkExist(String userId, String businessId) {
 		String query = "select user_id_business_id FROM book_mark WHERE user_id_business_id=?";
 		try {
@@ -137,8 +142,7 @@ public class MySQLDB implements DATA_BASE {
 						+ "state=?," + "stars=?," + "full_address=?," + "latitude=?," + "longitude=?," + "image_url=?,"
 						+ "url=?";
 
-				// String sqlUpdate= "ON DUPLICATE KEY UPDATE"";
-
+				//insert data
 				PreparedStatement statement = sqlCon.prepareStatement(sql);
 				statement.setString(1, businessId);
 				statement.setString(2, name);
@@ -152,6 +156,7 @@ public class MySQLDB implements DATA_BASE {
 				statement.setString(10, imageUrl);
 				statement.setString(11, url);
 
+				//the update data
 				statement.setString(12, name);
 				statement.setString(13, categories);
 				statement.setString(14, city);
@@ -248,7 +253,8 @@ public class MySQLDB implements DATA_BASE {
 	}
 
 	public static void main(String[] args) {
-
+		
+		MySQLDB sqlTest = new MySQLDB();
 	}
 
 	private void logInTest() {
@@ -284,28 +290,7 @@ public class MySQLDB implements DATA_BASE {
 		}
 	}
 
-	private void bookMarkTest() {
-
-		MySQLDB sqlTest = new MySQLDB();
-
-		/*
-		 * CREATE TABLE book_mark (book_mark_id bigint(20) unsigned NOT NULL
-		 * AUTO_INCREMENT, user_id VARCHAR(255) NOT NULL , business_id
-		 * VARCHAR(255) NOT NULL, book_mark_time timestamp NOT NULL DEFAULT
-		 * CURRENT_TIMESTAMP, is_booked BOOL NOT NULL, PRIMARY KEY
-		 * (book_mark_id), FOREIGN KEY (business_id) REFERENCES
-		 * restaurants(business_id), FOREIGN KEY (user_id) REFERENCES
-		 * users(user_id));
-		 */
-		List<String> testList = new ArrayList<>();
-		testList.add("asian-box-mountain-view");
-		testList.add("bowl-of-heaven-mountain-view-2");
-		testList.add("eureka-mountain-view-2");
-		testList.add("vaso-azzurro-ristorante-mountain-view");
-		testList.add("srasa-kitchen-mountain-view-3");
-		System.out.println(sqlTest.bookMarkRestaurants("thomas", testList, true));
-
-	}
+	
 
 	// simplify the table by combine two data to primary key
 	private static void bookMarkTestV2(boolean value) {
@@ -324,6 +309,11 @@ public class MySQLDB implements DATA_BASE {
 		testList.add("vaso-azzurro-ristorante-mountain-view");
 		testList.add("srasa-kitchen-mountain-view-3");
 		System.out.println(sqlTest.bookMarkRestaurants("thomas", testList, value));
+	}
+	
+	private static void getBookMarkTest() {
+		DATA_BASE sqlTest = new MySQLDB();
+		System.out.println(sqlTest.getBookMarkRestaurants("thomas"));
 	}
 
 }
