@@ -4,9 +4,9 @@ package db;
 
 
 import java.util.List;
-import java.util.Set;
 
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 //just in case we have to use the other kind of database
 public interface DATA_BASE {
@@ -62,5 +62,15 @@ public interface DATA_BASE {
      * @return
      */
     public List<String> getBookMarkRestaurants(String userId);
+    
+    
+    
+    /**
+     * Get the restaurant json by id.
+     * @param businessId
+     * @return
+     */
+    public JSONObject getRestaurantsById(String businessId);
+
 
 }

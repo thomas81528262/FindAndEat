@@ -21,6 +21,39 @@ public class MySQLDB implements DATA_BASE {
 
 	
 	@Override
+	public JSONObject getRestaurantsById(String businessId) {
+		
+		
+		try {
+			String sql = "SELECT * from restaurants where business_id = ?";
+			PreparedStatement statement = sqlCon.prepareStatement(sql);
+			statement.setString(1, businessId);
+			
+			
+			ResultSet rs = statement.executeQuery();
+			if (rs.next()) {
+				Restaurant restaurant = new Restaurant(
+						rs.getString("business_id"), rs.getString("name"),
+						rs.getString("categories"), rs.getString("city"),
+						rs.getString("state"), rs.getFloat("stars"),
+						rs.getString("full_address"), rs.getFloat("latitude"),
+						rs.getFloat("longitude"), rs.getString("image_url"),
+						rs.getString("url"));
+				JSONObject obj = restaurant.toJSONObject();
+				return obj;
+			}
+		} catch (Exception e) { /* report an error */
+			System.out.println(e.getMessage());
+		}
+		return null;
+	}
+	
+	
+	
+	
+	
+	
+	@Override
 	public List<String> getBookMarkRestaurants(String userId) {
 		List<String> bookMarkList = new ArrayList<>();
 		try {
