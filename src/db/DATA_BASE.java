@@ -10,6 +10,18 @@ import org.json.JSONObject;
 
 //just in case we have to use the other kind of database
 public interface DATA_BASE {
+	
+	
+	
+	
+	 /**
+     * Recommend restaurants based on userId
+     * @param userId
+     * @return
+     */
+    public JSONArray getRecommendRestaurants(String userId);
+	
+	
 
 	 /**
      * Insert the book mark value in the data base.

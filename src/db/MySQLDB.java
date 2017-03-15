@@ -18,62 +18,148 @@ import yelp.YelpAPI;
 
 public class MySQLDB implements DATA_BASE {
 	private Connection sqlCon = null;
+	private static final int MAX_RECOMMENDED_RESTAURANTS = 10;
 
-	
-	@Override
-	public JSONObject getRestaurantsById(String businessId) {
-		
-		
+	private Set<String> getCategories(String businessId) {
 		try {
-			String sql = "SELECT * from restaurants where business_id = ?";
+			String sql = "SELECT categories from restaurants WHERE business_id = ? ";
 			PreparedStatement statement = sqlCon.prepareStatement(sql);
 			statement.setString(1, businessId);
-			
-			
+
 			ResultSet rs = statement.executeQuery();
 			if (rs.next()) {
-				Restaurant restaurant = new Restaurant(
-						rs.getString("business_id"), rs.getString("name"),
-						rs.getString("categories"), rs.getString("city"),
-						rs.getString("state"), rs.getFloat("stars"),
-						rs.getString("full_address"), rs.getFloat("latitude"),
-						rs.getFloat("longitude"), rs.getString("image_url"),
-						rs.getString("url"));
-				JSONObject obj = restaurant.toJSONObject();
-				return obj;
+				Set<String> categoriesSet = new HashSet<>();
+				String[] categories = rs.getString("categories").split(",");
+				for (String category : categories) {
+					categoriesSet.add(category.trim());
+				}
+				return categoriesSet;
 			}
-		} catch (Exception e) { /* report an error */
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+		return new HashSet<String>();
+	}
+
+	private List<String> getBusinessId(Set<String> categories) {
+		List<String> list = new ArrayList<>();
+		try {
+
+			// combine all the categories and sort by star
+			int n = categories.size();
+
+			// mach patter: category = Burgers == categories = American,Burgers,
+			// Beer,
+			String sql = "SELECT business_id, stars from restaurants WHERE categories LIKE ? ";
+
+			for (int i = 0; i < n - 1; i++) {
+				sql += "union SELECT business_id, stars from restaurants WHERE categories LIKE ? ";
+			}
+
+			// sort by stars
+			sql += "ORDER BY stars DESC";
+			int inputNum = 1;
+			PreparedStatement statement = sqlCon.prepareStatement(sql);
+			for (String category : categories) {
+				statement.setString(inputNum++, "%" + category + "%");
+			}
+
+			System.out.println(statement);
+			ResultSet rs = statement.executeQuery();
+			while (rs.next()) {
+				String businessId = rs.getString("business_id");
+				list.add(businessId);
+			}
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+		return list;
+	}
+
+	@Override
+	public JSONArray getRecommendRestaurants(String userId) {
+		try {
+			if (sqlCon == null) {
+				return null;
+			}
+
+			List<String> bookMarkedRestaurants = getBookMarkRestaurants(userId);
+			Set<String> categories = new HashSet<>();
+
+			// get all the categories
+			for (String restaurant : bookMarkedRestaurants) {
+				categories.addAll(getCategories(restaurant));
+			}
+
+			// get all the businessId by categories pattern
+			List<String> businessIds = new ArrayList<>();
+
+			businessIds = getBusinessId(categories);
+
+			List<JSONObject> result = new ArrayList<>();
+			int count = 0;
+			for (String businessId : businessIds) {
+				// we want to filter the restaurant already in the bookMarked
+				if (!bookMarkedRestaurants.contains(businessId)) {
+					result.add(getRestaurantsById(businessId));
+					count++;
+					if (count >= MAX_RECOMMENDED_RESTAURANTS) {
+						break;
+					}
+				}
+			}
+			return new JSONArray(result);
+		} catch (Exception e) {
+			// we want to normal return the status
 			System.out.println(e.getMessage());
 		}
 		return null;
 	}
-	
-	
-	
-	
-	
-	
+
+	@Override
+	public JSONObject getRestaurantsById(String businessId) {
+
+		try {
+			String sql = "SELECT * from restaurants where business_id = ?";
+			PreparedStatement statement = sqlCon.prepareStatement(sql);
+			statement.setString(1, businessId);
+
+			ResultSet rs = statement.executeQuery();
+			if (rs.next()) {
+				Restaurant restaurant = new Restaurant(rs.getString("business_id"), rs.getString("name"),
+						rs.getString("categories"), rs.getString("city"), rs.getString("state"), rs.getFloat("stars"),
+						rs.getString("full_address"), rs.getFloat("latitude"), rs.getFloat("longitude"),
+						rs.getString("image_url"), rs.getString("url"));
+				JSONObject obj = restaurant.toJSONObject();
+				return obj;
+			}
+		} catch (Exception e) {
+			// we want to normal return the status
+			System.out.println(e.getMessage());
+		}
+		return null;
+	}
+
 	@Override
 	public List<String> getBookMarkRestaurants(String userId) {
 		List<String> bookMarkList = new ArrayList<>();
 		try {
+
 			String sql = "SELECT business_id from book_mark WHERE user_id = ?";
 			PreparedStatement statement = sqlCon.prepareStatement(sql);
 			statement.setString(1, userId);
 			ResultSet rs = statement.executeQuery();
-			
+
 			while (rs.next()) {
 				String visitedRestaurant = rs.getString("business_id");
 				bookMarkList.add(visitedRestaurant);
-				
+
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return bookMarkList;
 	}
-	
-	
 
 	private boolean bookMarkExist(String userId, String businessId) {
 		String query = "select user_id_business_id FROM book_mark WHERE user_id_business_id=?";
@@ -175,7 +261,7 @@ public class MySQLDB implements DATA_BASE {
 						+ "state=?," + "stars=?," + "full_address=?," + "latitude=?," + "longitude=?," + "image_url=?,"
 						+ "url=?";
 
-				//insert data
+				// insert data
 				PreparedStatement statement = sqlCon.prepareStatement(sql);
 				statement.setString(1, businessId);
 				statement.setString(2, name);
@@ -189,7 +275,7 @@ public class MySQLDB implements DATA_BASE {
 				statement.setString(10, imageUrl);
 				statement.setString(11, url);
 
-				//the update data
+				// the update data
 				statement.setString(12, name);
 				statement.setString(13, categories);
 				statement.setString(14, city);
@@ -285,9 +371,16 @@ public class MySQLDB implements DATA_BASE {
 		return name;
 	}
 
-	public static void main(String[] args) {
-		
+	public static void main(String[] args) throws JSONException {
+
 		MySQLDB sqlTest = new MySQLDB();
+		//Set<String> categories = sqlTest.getCategories("charley-noodle-and-grill-los-altos-2");
+		// System.out.println(categories);
+		// System.out.println(sqlTest.getBusinessId(categories));
+		JSONArray list = sqlTest.getRecommendRestaurants("thomas");
+		for (int i = 0; i < list.length(); i++) {
+			System.out.println(list.getJSONObject(i).getString("business_id"));
+		}
 	}
 
 	private void logInTest() {
@@ -323,8 +416,6 @@ public class MySQLDB implements DATA_BASE {
 		}
 	}
 
-	
-
 	// simplify the table by combine two data to primary key
 	private static void bookMarkTestV2(boolean value) {
 		DATA_BASE sqlTest = new MySQLDB();
@@ -343,7 +434,7 @@ public class MySQLDB implements DATA_BASE {
 		testList.add("srasa-kitchen-mountain-view-3");
 		System.out.println(sqlTest.bookMarkRestaurants("thomas", testList, value));
 	}
-	
+
 	private static void getBookMarkTest() {
 		DATA_BASE sqlTest = new MySQLDB();
 		System.out.println(sqlTest.getBookMarkRestaurants("thomas"));
