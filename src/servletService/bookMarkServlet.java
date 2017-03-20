@@ -24,7 +24,7 @@ import db.DATA_BASE;
 /**
  * Servlet implementation class VisitHistory
  */
-@WebServlet("/bookMark")
+@WebServlet("/BookMarkServlet")
 public class bookMarkServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        

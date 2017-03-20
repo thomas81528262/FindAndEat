@@ -64,7 +64,6 @@ public class MySQLDB implements DATA_BASE {
 				statement.setString(inputNum++, "%" + category + "%");
 			}
 
-			System.out.println(statement);
 			ResultSet rs = statement.executeQuery();
 			while (rs.next()) {
 				String businessId = rs.getString("business_id");
