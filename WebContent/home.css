@@ -1,0 +1,122 @@
+/* header section */
+header {
+	width: 100%;
+	left: 0;
+	right: 0;
+	top: 0;
+	height: 30px;
+	background: #ffffff;
+	display: flex;
+	align-items: center;
+}
+
+header h1 {
+	flex: 2;
+	margin-left: 10px;
+	font-size: 40px;
+	color: #FF5733;
+}
+
+header .top-nav {
+	flex: 1;
+	display: flex;
+	font-size: 20px;
+	text-align: right;
+}
+
+header .head-btn {
+	flex: 1;
+	padding: 0px 10px 0px 10px;
+	font-size: 30px;
+	color: #FF5733;;
+	text-decoration: none;
+}
+
+header .head-btn:hover {
+	color: red;
+}
+
+/* home section */
+#home {
+	background: url('https://pbs.twimg.com/media/C3klY7HXUAYaD8Q.jpg');
+	background-size: cover;
+	background-position: center;
+	color: #ffffff;
+	height: 700px;
+	text-align: center;
+	margin-top: 10px;
+	margin-bottom: 60px;
+	border: 1px solid white;
+}
+
+#home h1 {
+	font-size: 60px;
+	letter-spacing: 3px;
+	font-style: normal;
+	padding: 0px 0px 0px 0px;
+	margin: 100px 0px 0px 0px;
+}
+
+#home h2 {
+	font-family: 'Arizonia';
+	padding: 0px 0px 0px 0px;
+	font-size: 80px;
+	letter-spacing: 2px;
+	font-style: normal;
+	text-align: center;
+	margin: 50px 0px 0px 0px;
+}
+
+#login-form {
+	font-size: 20px;
+	color: #ffffff;
+	margin: 0px auto;
+	overflow: auto;
+	padding: 0px 0px 0px 0px;
+	width: 300px;
+	text-align: left
+}
+
+#login-form input {
+	font-size: 20px;
+	background: rgba(255, 255, 255, .7);
+	border: 1px solid rgba(255, 255, 255, 0.6);
+	display: white;
+	margin-bottom: 2px;
+	padding: 10px;
+	width: 100%;
+}
+
+#home .btn {
+	background: transparent;
+	border: 3px solid #ffffff;
+	color: #ffffff;
+	font-weight: bold;
+	letter-spacing: 2px;
+	padding: 10px 10px 10px 10px;
+	transition: all 0.4s ease-in-out;
+	text-decoration: none;
+}
+
+#home .btn:hover {
+	background: #ffffff;
+	color: #202020;
+}
+
+#login-form input:hover {
+	background: rgba(255, 255, 255, 0.7);
+}
+
+#login-form input:focus {
+	background: rgba(255, 255, 255, 0.7);
+}
+
+#login-form button {
+	font-size: 20px;
+	cursor: pointer;
+	margin-top: 5px;
+	padding: 5px;
+	width: 300px;
+	text-align: center;
+	margin: 0px 0px 20px 0px;
+}
