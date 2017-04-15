@@ -51,7 +51,7 @@ public class servletFilter implements Filter {
 		if (check.length >= 3 && passPath.contains(check[2]) ||  session.getAttribute("user_id")!= null) {
 			chain.doFilter(req, res);
 		}else {
-			response.sendRedirect("/FindAndEat/home.html");
+			response.sendRedirect("home.html");
 		}		
 		 
 	}

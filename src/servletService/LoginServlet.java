@@ -39,7 +39,7 @@ public class LoginServlet extends HttpServlet {
 				response.setStatus(403);
 				res.put("status", "Session Invalid");
 			} else {
-				String user = (String) session.getAttribute("user");
+				String user = (String) session.getAttribute("user_id");
 				String name = db.getFirstLastName(user);
 				res.put("status", "OK");
 				res.put("user_id", user);
@@ -82,7 +82,8 @@ public class LoginServlet extends HttpServlet {
 				rst.put("user_id", user_id);
 				rst.put("name", userName);
 				rst.put("status", "OK");
-				RpcHelper.writeOutput(response, rst);
+				//RpcHelper.writeOutput(response, rst);
+				response.sendRedirect("main/main.html");
 			} else {
 				// http 401 Unauthorized
 				response.setStatus(401);

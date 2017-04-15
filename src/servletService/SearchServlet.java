@@ -16,7 +16,7 @@ import db.MySQLDB;
 /**
  * Servlet implementation class SearchRestaurants
  */
-@WebServlet("/search")
+@WebServlet("/SearchServlet")
 public class SearchServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
