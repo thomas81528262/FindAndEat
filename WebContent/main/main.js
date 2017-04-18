@@ -155,10 +155,8 @@ function login_init() {
     ajaxDealFun.createResponseFun(200,
         function(xhr) {
             var JsonData = JSON.parse(xhr.responseText);
-            user_id = JsonData.user_id;
-            console.log(JsonData.status);
-            console.log(JsonData.user_id);
-            console.log(JsonData.name);  
+            user_id=JsonData.user_id;
+            $('user-name').innerText = 'Hi, ' + JsonData.name;
             ajax_connect_init();
         }
     );
@@ -170,7 +168,7 @@ function login_init() {
     AJAXconnect(loginPack);
 }
 
-login_init();
+
 
 
 /**
@@ -186,7 +184,7 @@ function ajax_connect_init() {
     ajaxDealFun.createResponseFun(200,
         function(xhr) {
     		var JsonData = JSON.parse(xhr.responseText);     
-            console.log(JsonData);
+    		 listRestaurantData(JsonData);
         }
     );
 
@@ -196,7 +194,8 @@ function ajax_connect_init() {
         return  Host +ServletName+'BookMarkServlet?user_id='+user_id;
     }
     var gBookMarkPack = AJAX_PACK.createNew('GET', url, ajaxDealFun);
-    AJAXconnect(gBookMarkPack);
+    var btn = $('bookmark-btn');
+    btn.onclick = function() { AJAXconnect(gBookMarkPack);};
    
     
     //2.get the recommendataion list for the user
@@ -204,7 +203,8 @@ function ajax_connect_init() {
         return Host + ServletName + 'RecommendationServlet?user_id=' + user_id;
     }
     var gRecommandPack = AJAX_PACK.createNew('GET', url, ajaxDealFun);
-    AJAXconnect(gRecommandPack);
+    btn = $('recommand-btn');
+    btn.onclick = function() { AJAXconnect(gRecommandPack); };
     
         
     //3.get the search list for the user
@@ -212,12 +212,105 @@ function ajax_connect_init() {
         return Host+ ServletName+ 'SearchServlet?user_id='+ user_id +'&lat=' + lat + '&lon=' + lon + '&term=' + term_now;
     }
     var gSearchPack = AJAX_PACK.createNew('GET', url, ajaxDealFun); 
-    AJAXconnect(gSearchPack);
+    btn = $('near-by-btn');
+    btn.onclick = function() { AJAXconnect(gSearchPack); };
     
 }
 
 
 
+
+
+
+//replace the  restaurant-list part
+function listRestaurantData(jsonData) {
+    var listSection = $('restaurant-list');
+    listSection.innerHTML = '<hr>';
+
+    for (var i = 0; i < jsonData.length; i++) {
+        addRestaurantElement(listSection, jsonData[i]);
+    }
+}
+
+
+
+
+
+
+function addRestaurantElement(listSection, jsonData) {
+    var newRestaurant = createListRestaurant(jsonData);
+    var image = createListImg(jsonData);
+    var section = createListSection(jsonData);
+    var address = createListAddress(jsonData);
+    var bookMark = createListBookMark(jsonData);
+
+    // the order can not be changed!!!!
+
+    newRestaurant.appendChild(image);
+    newRestaurant.appendChild(section);
+    newRestaurant.appendChild(address);
+    newRestaurant.appendChild(bookMark);
+    listSection.appendChild(newRestaurant);
+    listSection.appendChild($('<hr>'));
+}
+
+
+function createListBookMark(jsonData) {
+    var bookMark = $('<p>', { className: 'bookMark-link' });
+    bookMark.appendChild($('<i>', {
+        id: 'bookMark-icon-' + jsonData.business_id,
+        className: 'fa fa-bookmark'
+    }));
+
+  
+    return bookMark;
+}
+
+
+function createListSection(jsonData) {
+    var section = $('<div>');
+
+    // category
+    var category = $('<p>', { className: 'restaurant-category' });
+    category.innerHTML = jsonData.categories.join(', ');
+    section.appendChild(category);
+
+
+    // stars
+    var stars = $('<div>', { className: 'stars' });
+    // console.log(jsonData.stars);
+    for (var i = 0; i < Math.floor(jsonData.stars); i++) {
+        var star = $('<i>', { className: 'fa fa-star' });
+        stars.appendChild(star);
+    }
+
+    if (('' + jsonData.stars).match(/\.5$/)) {
+        stars.appendChild($('<i>', { className: 'fa fa-star-half-o' }));
+    }
+
+    section.appendChild(stars);
+    return section;
+}
+
+function createListImg(jsonData) {
+    return $('<img>', { src: jsonData.image_url });
+}
+
+function createListAddress(jsonData) {
+    var address = $('<p>', { className: 'restaurant-address' });
+    address.innerHTML = jsonData.full_address.replace(/,/g, '<br/>');
+    return address;
+}
+
+function createListRestaurant(jsonData) {
+    return $('<li>', {
+        id: 'restaurant-' + jsonData.business_id,
+        className: 'restaurant'
+    });
+}
+
+
+login_init();
 
 
 
