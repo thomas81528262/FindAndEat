@@ -290,7 +290,8 @@ public class MySQLDB implements DATA_BASE {
 
 				// finally get the result > <
 				list.add(obj);
-
+				servletService.WebSocketLog.log.offer(insertCom + businessId+ "..... " + updateCom +".....");
+				statement.execute();
 			}
 
 			return new JSONArray(list);

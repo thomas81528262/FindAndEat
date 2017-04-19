@@ -49,6 +49,7 @@ public class SearchServlet extends HttpServlet {
 			array = db.searchRestaurants(userId, latitude, lontitude, term);
 		}
 		RpcHelper.writeOutput(response, array);
+		servletService.WebSocketLog.sendMessage();
 
 	}
 
