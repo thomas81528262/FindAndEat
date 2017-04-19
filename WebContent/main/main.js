@@ -172,6 +172,8 @@ function login_init() {
  * the global request function
  */
 var searchRequest;
+var bookMarkRequest;
+var isBookMarkPage = false;
 
 
 /**
@@ -198,7 +200,8 @@ function ajax_connect_init() {
     }
     var gBookMarkPack = AJAX_PACK.createNew('GET', url, ajaxDealFun);
     var btn = $('bookmark-btn');
-    btn.onclick = function() { AJAXconnect(gBookMarkPack);};
+    btn.onclick = function() { AJAXconnect(gBookMarkPack);
+    isBookMarkPage = true;};
    
     
     //2.get the recommendataion list for the user
@@ -207,7 +210,8 @@ function ajax_connect_init() {
     }
     var gRecommandPack = AJAX_PACK.createNew('GET', url, ajaxDealFun);
     btn = $('recommand-btn');
-    btn.onclick = function() { AJAXconnect(gRecommandPack); };
+    btn.onclick = function() { AJAXconnect(gRecommandPack); 
+    isBookMarkPage = false; };
     
         
     //3.get the search list for the user
@@ -216,10 +220,49 @@ function ajax_connect_init() {
     }
     var gSearchPack = AJAX_PACK.createNew('GET', url, ajaxDealFun); 
     btn = $('near-by-btn');
-    btn.onclick = function() { AJAXconnect(gSearchPack); };
+    btn.onclick = function() { AJAXconnect(gSearchPack); 
+    isBookMarkPage = false;};
     
     searchRequest = function() {
         AJAXconnect(gSearchPack);
+    }
+    
+    bookMarkRequest = function(business_id) {
+        // Check whether this restaurant has been visited or not
+        var li = $('restaurant-' + business_id);
+        var bookIcon = $('bookMark-icon-' + business_id);
+        var isBooked = li.dataset.is_booked !== 'true';
+
+        // The request parameters
+        var url = function() {
+            return ServletName+ 'BookMarkServlet?user_id=' + user_id;
+        };
+        var req = JSON.stringify({
+            user_id: user_id,
+            is_booked: isBooked,
+            business_id: business_id
+        });
+        
+
+        var rFun = RES_DEAL_FUN.createNew()
+        rFun.createResponseFun(200,
+            function(xhr) {
+                var data = JSON.parse(xhr.responseText);
+                if (data.status === 'OK') {
+                    li.dataset.is_booked = isBooked;
+                    bookIcon.className = isBooked ? 'fa fa-bookmark' : 'fa fa-bookmark-o';
+                    if (isBookMarkPage && !isBooked) {
+                        li.nextElementSibling.remove();
+                        li.remove();
+                        
+                    }
+
+                }
+            }
+        );
+
+        var ajaxPack = AJAX_PACK.createNew('POST', url, rFun, req);
+        AJAXconnect(ajaxPack);
     }
     
 }
@@ -279,7 +322,7 @@ function addRestaurantElement(listSection, jsonData) {
 
     // the order can not be changed!!!!
 
-    newRestaurant.dataset.visited = jsonData.is_visited;
+    newRestaurant.dataset.is_booked = jsonData.is_booked;
     newRestaurant.appendChild(image);
     newRestaurant.appendChild(section);
     newRestaurant.appendChild(address);
@@ -293,9 +336,12 @@ function createListBookMark(jsonData) {
     var bookMark = $('<p>', { className: 'bookMark-link' });
     bookMark.appendChild($('<i>', {
         id: 'bookMark-icon-' + jsonData.business_id,
-        className: 'fa fa-bookmark'
+        className: jsonData.is_booked ? 'fa fa-bookmark' : 'fa fa-bookmark-o'
     }));
 
+    bookMark.onclick = function() {
+        bookMarkRequest(jsonData.business_id);
+    };
   
     return bookMark;
 }
