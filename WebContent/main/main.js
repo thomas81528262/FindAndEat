@@ -168,7 +168,10 @@ function login_init() {
     AJAXconnect(loginPack);
 }
 
-
+/**
+ * the global request function
+ */
+var searchRequest;
 
 
 /**
@@ -215,10 +218,40 @@ function ajax_connect_init() {
     btn = $('near-by-btn');
     btn.onclick = function() { AJAXconnect(gSearchPack); };
     
+    searchRequest = function() {
+        AJAXconnect(gSearchPack);
+    }
+    
 }
 
 
+/**
+ * initial the drop function button
+ */
+function drop_btn_init() {
 
+    var FUNC_BUT = {
+        createNew: function(span, btn) {
+            return function() {
+                span.innerHTML = btn.innerHTML;
+                term_now = btn.dataset.kind;
+                 searchRequest();
+            }
+        }
+    }
+
+    const search_term = ['brunch', 'lunch', 'dinner'];
+    var dropBtn = $('drop-down-botton');
+    dropBtn.classList.remove('active');
+    dropBtn.onclick = function() { dropBtn.classList.toggle('active'); }
+    var btn = dropBtn.getElementsByTagName('li');
+    var dropBtnSpan = dropBtn.getElementsByTagName('span')[0];
+
+    for (var i = 0; i < btn.length; i++) {
+        btn[i].onclick = FUNC_BUT.createNew(dropBtnSpan, btn[i]);
+        btn[i].dataset.kind = search_term[i];
+    }
+}
 
 
 
@@ -246,6 +279,7 @@ function addRestaurantElement(listSection, jsonData) {
 
     // the order can not be changed!!!!
 
+    newRestaurant.dataset.visited = jsonData.is_visited;
     newRestaurant.appendChild(image);
     newRestaurant.appendChild(section);
     newRestaurant.appendChild(address);
@@ -311,6 +345,7 @@ function createListRestaurant(jsonData) {
 
 
 login_init();
+drop_btn_init();
 
 
 
