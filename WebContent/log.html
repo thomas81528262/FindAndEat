@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>websockets log</title>
+</head>
+
+<body>
+	<div>
+		<input type="submit" value="Start" onclick="start()" />
+	</div>
+	<div id="messages"></div>
+	<!--   build socket link -->
+	<script type="text/javascript">
+		function init() {
+			var url = document.URL.replace('http', 'ws').replace('log.html',
+					'log')
+			var webSocket = new WebSocket(url);
+
+			webSocket.onerror = function(event) {
+				onError(event)
+			};
+
+			webSocket.onopen = function(event) {
+				onOpen(event)
+			};
+
+			webSocket.onmessage = function(event) {
+				onMessage(event)
+			};
+
+			function onMessage(event) {
+				document.getElementById('messages').innerHTML += '<br/>'
+						+ event.data;
+
+				var body = document.body, html = document.documentElement;
+
+				var height = Math
+						.max(body.scrollHeight, body.offsetHeight,
+								html.clientHeight, html.scrollHeight,
+								html.offsetHeight);
+				window.scrollTo(0, height);
+
+			}
+
+			function onOpen(event) {
+				document.getElementById('messages').innerHTML = 'Connection established';
+			}
+
+			function onError(event) {
+				alert(event.data);
+			}
+
+		}
+		function start() {
+			init();
+			webSocket.send('get log');
+		}
+	</script>
+</body>
+
+</html>

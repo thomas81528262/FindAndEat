@@ -27,7 +27,9 @@ public class servletFilter implements Filter {
     			"home.css",
     			"home.html",
     			"home.js",
-    			"LoginServlet"
+    			"LoginServlet",
+    			"log",
+    			"log.html"
     			};
     	
         
