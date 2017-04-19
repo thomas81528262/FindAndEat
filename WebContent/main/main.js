@@ -139,13 +139,32 @@ function AJAXconnect(pack) {
     }
 }
 
+
+
+/* message information */
+
+function showLoadingMessage(msg) {
+    var restaurantList = $('restaurant-list');
+    restaurantList.innerHTML = '<p class="notice"><i class="fa fa-cog fa-spin fa-3x fa-fw"></i> ' + msg + '</p>';
+}
+
+
+
 //define global value 
 var user_id = '';
 var user_name='';
 var term_now = 'dinner';
 
+
+//37.354314, -121.984203
+//var lat = 37.354314;
+//var lng = -121.984203;
+
+
 var lat = 37.354314;
 var lon = -121.984203;
+
+
 
 /*log in cennction*/
 function login_init() {
@@ -298,11 +317,106 @@ function drop_btn_init() {
 
 
 
+
+function initGeoLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(onPositionUpdated, onLoadPositionFailed, { maximumAge: 600 });
+
+        showLoadingMessage('Retrieving your location...');
+    } else {
+        onLoadPositionFailed();
+    }
+}
+
+
+function onLoadPositionFailed() {
+    console.log('navigator.geolocation is not available');
+    searchRequest();
+}
+
+
+function onPositionUpdated(position) {
+    lat = position.coords.latitude;
+    lon = position.coords.longitude;
+    searchRequest();
+}
+
+
+var map;
+
+function initMap() {
+    if (typeof lat != 'undefined' && typeof lon != 'undefined') { // avoid the
+																	// preload
+																	// of the
+																	// google
+																	// map
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: { lat: lat, lng: lon },
+            zoom: 12
+        });
+
+        var myLatLng = { lat: lat, lng: lon };
+        var marker = new google.maps.Marker({
+            position: myLatLng,
+            map: map,
+            icon: 'https://www.google.com/mapfiles/arrow.png',
+        });
+
+        lastMark = null;
+        
+    }
+}
+
+
+
+var lastMark;
+
+
+
+function changeMapPinColor(business_id, marker) {
+    if (marker === lastMark) {
+        return;
+    }
+
+    var lat = marker.getPosition().lat();
+    var lng = marker.getPosition().lng();
+
+    var myLatLng = { lat: lat, lng: lng };
+    map.setCenter(myLatLng);
+
+
+
+    var icon = {
+        url: "http://maps.google.com/mapfiles/ms/icons/red-dot.png", // url
+        scaledSize: new google.maps.Size(60, 60), // scaled size
+    }
+  // marker.setMap(null);
+	marker.setIcon(icon);
+	marker.setZIndex(99);
+    
+
+    if (lastMark !== null) {
+    	
+
+    	lastMark.setIcon("http://maps.google.com/mapfiles/ms/icons/blue-dot.png");
+    	lastMark.setZIndex(0);
+    }
+    lastMark = marker;
+}
+
+
+
+
+
+
+
+
+
 //replace the  restaurant-list part
 function listRestaurantData(jsonData) {
     var listSection = $('restaurant-list');
     listSection.innerHTML = '<hr>';
-
+    initMap();
     for (var i = 0; i < jsonData.length; i++) {
         addRestaurantElement(listSection, jsonData[i]);
     }
@@ -350,6 +464,26 @@ function createListBookMark(jsonData) {
 function createListSection(jsonData) {
     var section = $('<div>');
 
+    
+    // set map marker
+    var LatLng = { lat: jsonData.latitude, lng: jsonData.longitude };
+    var marker = new google.maps.Marker({
+        position: LatLng,
+        icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+        map: map,
+    });
+    marker.setZIndex(0);
+    var title = $('<div>', { id: 'map-' + jsonData.business_id, className: 'restaurant-name-element' });
+    title.dataset.lat = jsonData.latitude;
+    title.dataset.lon = jsonData.longitude;
+    title.onmouseover = function() { changeMapPinColor(jsonData.business_id, marker); };
+
+
+    // title
+    title.innerHTML = jsonData.name;
+    section.appendChild(title);
+    
+    
     // category
     var category = $('<p>', { className: 'restaurant-category' });
     category.innerHTML = jsonData.categories.join(', ');
@@ -389,7 +523,7 @@ function createListRestaurant(jsonData) {
     });
 }
 
-
+initGeoLocation();
 login_init();
 drop_btn_init();
 
