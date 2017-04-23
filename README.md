@@ -12,5 +12,5 @@
  <img src="https://github.com/thomas81528262/FindAndEat/blob/master/WebContent/tutorial/map.gif" width="500"></img>
 ## Step 5: Book mark restaurant you love
  <img src="https://github.com/thomas81528262/FindAndEat/blob/master/WebContent/tutorial/bookMark.gif" width="500"></img>
-## Other: See how the backend work.
+## Other: See how the backend work.(web socket)
  <img src="https://github.com/thomas81528262/FindAndEat/blob/master/WebContent/tutorial/sql%20log.gif" width="500"></img>
