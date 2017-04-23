@@ -1,0 +1,117 @@
+
+
+
+/* header section */
+
+header {
+  width : 100 %;
+  left : 0;
+  right : 0;
+  top : 0;
+  height : 30px;
+  background:  #ffffff;
+  display : flex;
+  align-items: center;
+
+}
+
+header h1{ 
+  flex : 2;
+  margin-left:10px; 
+  font-size: 40px;
+  color:#FF5733;
+    
+}
+
+header .top-nav {
+  
+  flex : 1;
+  display : flex;
+  font-size: 20px;
+  text-align : right;
+}
+
+header .head-btn {
+  flex : 1;
+ padding : 0px 10px 0px 10px;
+ font-size:30px;
+  color: #FF5733;;
+  text-decoration: none;
+}
+
+header .head-btn:hover {
+  color:red;
+ /*c
+  border-radius: 10px;
+  padding : 0px 20px 0px 20px;
+  box-shadow: 0px 1px 3px #666666;
+  color: #000000;
+  font-size: 30px;
+  background: #ffffff;
+  text-decoration: none;
+  text-align : center;
+  */
+ 
+
+}
+
+
+
+
+#main{
+	display:block;
+	margin-top:30px;
+}
+
+#bookMark-pic,
+#map-pic,
+#typeSearch-pic, 
+#greenArrow-pic,
+#log-in-pic{
+
+	width:55%;
+	height:450px;
+	margin-bottom:100px;
+	border: 2px solid #FF5733;
+	
+}
+
+
+
+#log-in-pic{
+	
+	object-position: 50% 89%;
+}
+
+
+.pic-sec{
+	display:flex;
+	font-size:30px;
+
+}
+
+.pic-sec div{
+	margin:auto;
+	width:30%;
+}
+
+.pic-sec p{
+	display:block;
+}
+
+#greenArrow-pic{
+	object-fit: none;
+}
+
+
+#bookMark-pic{
+	
+	
+
+
+}
+
+
+#typeSearch-pic{
+
+}
